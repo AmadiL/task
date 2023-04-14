@@ -1,0 +1,13 @@
+version: '3'
+
+networks:
+  clust:
+    driver: bridge
+
+services:
+  clust:
+    build: .
+    ports:
+      - "8090:8000"
+    networks:
+      - clust
