@@ -33,6 +33,6 @@ jobs:
       - name: "Plan infra"
         working-directory: terraform/infra
         run: |
-          terraform init
+          terraform init -backend-config=infra.gcs.tfbackend
           terraform workspace select $ENV || terraform workspace new $ENV
           terraform plan -var-file=../$ENV.tfvars -input=false -out "planfile"
