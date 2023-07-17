@@ -1,0 +1,38 @@
+name: CICD Workflow
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  cicd:
+    name: cicd
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    env:
+      ENV: dev
+      TAG: latest
+      PYTHON_VERSION: 3.8
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3.0.2
+      - name: Install python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: ${{env.PYTHON_VERSION}}
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
+      - name: 'GCloud info'
+        run: 'gcloud info'
+      - name: "Plan infra"
+        working-directory: terraform/infra
+        run: |
+          terraform init -backend-config=infra.gcs.tfbackend
+          terraform workspace select $ENV || terraform workspace new $ENV
+          terraform plan -var-file=../$ENV.tfvars -input=false -out "planfile"
